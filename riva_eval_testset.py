@@ -2,6 +2,12 @@
 Use this script to automatically generate transcripts for TESTSET files
 To run:
 $ python riva_streaming_asr.py --riva-uri 34.91.13.201:50051 --input-file wav/Clip0001.wav
+
+TODO:
+[ ] parser arguments are currently ignored
+[ ] show progress bar
+[ ] add thread limitation
+[ ] ...
 """
 
 import wave
