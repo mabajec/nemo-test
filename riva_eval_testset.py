@@ -161,7 +161,7 @@ parser_word_time_offsets = False
 parser_no_verbatim_transcripts = False
 
 parser_input_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET"
-parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/TEST"
+parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_retrained_model.15xc_LM"
 
 
 print("Input folder:", parser_input_folder)

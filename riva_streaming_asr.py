@@ -16,6 +16,7 @@ import riva_api.riva_audio_pb2 as ra
 import riva_api.riva_asr_pb2 as rasr
 import riva_api.riva_asr_pb2_grpc as rasr_srv
 
+import json
 
 def get_args():
     parser = argparse.ArgumentParser(description="Streaming transcription via Riva AI Services")
@@ -28,7 +29,7 @@ def get_args():
         "--simulate-realtime", default=False, action='store_true', help="Option to simulate realtime transcription"
     )
     parser.add_argument(
-        "--word-time-offsets", default=False, action='store_true', help="Option to output word timestamps"
+        "--word-time-offsets", default=True, action='store_true', help="Option to output word timestamps"
     )
     parser.add_argument(
         "--max-alternatives",
@@ -60,15 +61,16 @@ def print_to_file(responses, output_file, max_alternatives, word_time_offsets):
             if not response.results:
                 continue
             partial_transcript = ""
+            #print(response)
             for result in response.results:
                 if result.is_final:
                     for index, alternative in enumerate(result.alternatives):
-                        """
+                        
                         f.write(
-                            "Time %.2fs: Transcript %d: %s\n"
+                            "\nTime %.2fs: Transcript %d: %s\n"
                             % (time.time() - start_time, index, alternative.transcript)
                         )
-                        """
+                        
                         f.write(alternative.transcript)
                     if word_time_offsets:
                         f.write("Timestamps:\n")
@@ -82,6 +84,50 @@ def print_to_file(responses, output_file, max_alternatives, word_time_offsets):
                     partial_transcript += transcript
 
             #f.write(">>>Time %.2fs: %s\n" % (time.time() - start_time, partial_transcript))
+
+def print_to_file_mitja(responses, output_file, max_alternatives, word_time_offsets):
+    start_time = time.time()
+    with open(output_file, "w") as f:
+
+        transcripts = []
+
+        # Iterate all responses
+        for response in responses:
+
+            # Ignore empty results
+            if not response.results:
+                continue
+
+            # Iterate trough results
+            for result in response.results:
+
+                # Map only final transcripts
+                if result.is_final:
+
+                    # Use first and most likely alternative
+                    first_alternative = result.alternatives[0]
+
+                    # Map all words
+                    target_words = []
+                    for source_word in first_alternative.words:
+                        target_words.append({
+                            "startTime": source_word.start_time,
+                            "endTime": source_word.end_time,
+                            "text": source_word.word,
+                            "confidence": first_alternative.confidence
+                        })
+
+                    # Map transcript itself
+                    transcripts.append({
+                        "startTime": target_words[0]["startTime"],
+                        "endTime": target_words[len(target_words) - 1]["endTime"],
+                        "words": target_words
+                    })
+        
+    # Print as JSON
+    with open('transcripts.json', 'w') as outfile:
+        json.dump(transcripts, outfile)
+
 
 def asr_client(
     id,
@@ -140,7 +186,7 @@ def asr_client(
             print(e)
 
     responses = client.StreamingRecognize(generator(wf, streaming_config, num_iterations, output_file))
-    print_to_file(responses, output_file, max_alternatives, word_time_offsets)
+    print_to_file_mitja(responses, output_file, max_alternatives, word_time_offsets)
 
 
 from threading import Thread
