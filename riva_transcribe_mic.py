@@ -1,3 +1,10 @@
+"""
+To run:
+    - make sure riva server is running on the server machine
+    - run: 
+    $ python riva_transcribe_mic.py  --server 34.91.13.201:50051
+"""
+
 # Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -157,7 +164,7 @@ def main():
         max_alternatives=1,
         enable_automatic_punctuation=True,
     )
-    streaming_config = rasr.StreamingRecognitionConfig(config=config, interim_results=False)
+    streaming_config = rasr.StreamingRecognitionConfig(config=config, interim_results=True)
 
     with MicrophoneStream(RATE, CHUNK, device=args.input_device) as stream:
         audio_generator = stream.generator()
