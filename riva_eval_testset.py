@@ -1,7 +1,5 @@
 """
-This is an example of streaming client for riva service
-Based on riva examples
-
+Use this script to automatically generate transcripts for TESTSET files
 To run:
 $ python riva_streaming_asr.py --riva-uri 34.91.13.201:50051 --input-file wav/Clip0001.wav
 """
@@ -11,6 +9,7 @@ import sys
 import grpc
 import time
 import argparse
+import os
 
 import riva_api.riva_audio_pb2 as ra
 import riva_api.riva_asr_pb2 as rasr
@@ -19,10 +18,11 @@ import riva_api.riva_asr_pb2_grpc as rasr_srv
 
 def get_args():
     parser = argparse.ArgumentParser(description="Streaming transcription via Riva AI Services")
-    parser.add_argument("--num-clients", default=1, type=int, help="Number of client threads")
-    parser.add_argument("--num-iterations", default=1, type=int, help="Number of iterations over the file")
     parser.add_argument(
-        "--input-file", required=True, type=str, help="Name of the WAV file with LINEAR_PCM encoding to transcribe"
+        "--input-folder", required=True, type=str, help="Name of the folder with WAV files to transcribe"
+    )
+    parser.add_argument(
+        "--output-folder", required=True, type=str, help="Name of the folder to save transcribe to"
     )
     parser.add_argument(
         "--simulate-realtime", default=False, action='store_true', help="Option to simulate realtime transcription"
@@ -94,7 +94,7 @@ def asr_client(
     automatic_punctuation,
     word_time_offsets,
     verbatim_transcripts,
-):
+    ):
 
     CHUNK = 1600
     channel = grpc.insecure_channel(riva_uri)
@@ -145,35 +145,57 @@ def asr_client(
 
 from threading import Thread
 
-parser = get_args()
+#parser = get_args()
 
-print("Number of clients:", parser.num_clients)
-print("Number of iteration:", parser.num_iterations)
-print("Input file:", parser.input_file)
+parser_simulate_realtime = False
+parser_riva_uri = "34.91.13.201:50051"
+parser_max_alternatives = 1
+parser_automatic_punctuation = False
+parser_word_time_offsets = False
+parser_no_verbatim_transcripts = False
+
+parser_input_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET"
+parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/TEST"
+
+
+print("Input folder:", parser_input_folder)
 
 threads = []
 output_filenames = []
-for i in range(parser.num_clients):
-    output_filenames.append("output_%d.txt" % i)
-    t = Thread(
-        target=asr_client,
-        args=(
-            i,
-            output_filenames[-1],
-            parser.input_file,
-            parser.num_iterations,
-            parser.simulate_realtime,
-            parser.riva_uri,
-            parser.max_alternatives,
-            parser.automatic_punctuation,
-            parser.word_time_offsets,
-            not parser.no_verbatim_transcripts,
-        ),
-    )
-    t.start()
-    threads.append(t)
+i = 0
+
+for file in os.listdir(parser_input_folder):
+    if file[0] not in (".", "~", "_") and os.path.isdir(os.path.join(parser_input_folder, file)):
+        for ffile in os.listdir(os.path.join(parser_input_folder, file)):
+            if ffile.split(".")[-1]=="wav" and ffile[0] not in (".", "~"):
+                # open output file
+                i += 1
+                wavfile = os.path.join(parser_input_folder, file, ffile)
+                outfile = os.path.join(parser_output_folder, file, "".join(ffile.split(".")[:-1])+".txt")
+                print(wavfile)
+                print(outfile)
+                if not os.path.isdir(os.path.join(parser_output_folder, file)):
+                    os.mkdir(os.path.join(parser_output_folder, file))
+
+                t = Thread(
+                    target=asr_client,
+                    args=(
+                        i,
+                        outfile,
+                        wavfile,
+                        1,
+                        parser_simulate_realtime,
+                        parser_riva_uri,
+                        parser_max_alternatives,
+                        parser_automatic_punctuation,
+                        parser_word_time_offsets,
+                        not parser_no_verbatim_transcripts,
+                    ),
+                )
+                t.start()
+                threads.append(t)
 
 for i, t in enumerate(threads):
     t.join()
 
-print(str(parser.num_clients), "threads done, output written to output_<thread_id>.txt")
+print("Done, output written to %s" %parser_output_folder)
