@@ -1,63 +1,69 @@
 import json
 import os
 import wget
-
-#from IPython.display import Audio
 import numpy as np
 import scipy.io.wavfile as wav
-
-#! pip install pandas
 import pandas
 
-# optional
-#! pip install plotly
-from plotly import graph_objects as go
+from tools import prepare_data as prep
 
-print("Imports ok")
+# optional
+#from plotly import graph_objects as go
 
 _CONFIG = {
+		"NEMO_branch": "r1.4.0",
+		"ASR_MODEL": "QuartzNet15x5Base-En",
+		"organization": {
+			"TOOLS_DIR": "tools",
+			"WORK_DIR": "work_dir",
+			"DATA_DIR": "work_dir/data",
+			"OUTPUT_DIR": "work_dir/output"
+		},
         "pipeline": {
                 "doDownloadUtils": False,
-                "doDownloadData": True
+                "doDownloadData": False,
+				"oPreprocessData": True
         }
 }
 
 
-# Make sure to use the correct/last branch
-BRANCH = 'r1.4.0'
+if __name__ != "__main__":
+        exit()
+
+BRANCH = _CONFIG.get("NEMO_branch")
+
+cur_dir = os.path.abspath(os.getcwd())
+TOOLS_DIR = os.path.join(cur_dir, _CONFIG.get("organization").get("TOOLS_DIR"))
+WORK_DIR = os.path.join(cur_dir, _CONFIG.get("organization").get("WORK_DIR"))
+DATA_DIR = os.path.join(cur_dir, _CONFIG.get("organization").get("DATA_DIR"))
 
 
 # STEP 1: DOWNLOAD UTILITIES
-
 if _CONFIG.get("pipeline").get("doDownloadUtils"):
-     cur_dir = os.path.abspath(os.getcwd())
-     TOOLS_DIR = os.path.join(cur_dir, 'tools')
 
-     os.makedirs(TOOLS_DIR, exist_ok=True)
+	os.makedirs(TOOLS_DIR, exist_ok=True)
 
-     required_files = ['prepare_data.py',
-                    'normalization_helpers.py',
-                    'run_ctc_segmentation.py',
-                    'verify_segments.py',
-                    'cut_audio.py',
-                    'process_manifests.py',
-                    'utils.py']
-     for file in required_files:
-          if not os.path.exists(os.path.join(TOOLS_DIR, file)):
-                file_path = 'https://raw.githubusercontent.com/NVIDIA/NeMo/' + BRANCH + '/tools/ctc_segmentation/scripts/' + file
-                print(file_path)
-                wget.download(file_path, TOOLS_DIR)
-          elif not os.path.exists(TOOLS_DIR):
-                raise ValueError(f'update path to NeMo root directory')
-
-
+	required_files = [
+		'prepare_data.py',
+        'normalization_helpers.py',
+		'run_ctc_segmentation.py',
+		'verify_segments.py',
+		'cut_audio.py',
+		'process_manifests.py',
+		'utils.py'
+		]
+	
+	for file in required_files:
+		if not os.path.exists(os.path.join(TOOLS_DIR, file)):
+			file_path = 'https://raw.githubusercontent.com/NVIDIA/NeMo/' + BRANCH + '/tools/ctc_segmentation/scripts/' + file
+			print("\nDownloading file: %s" %file_path)
+			wget.download(file_path, TOOLS_DIR)
+		elif not os.path.exists(TOOLS_DIR):
+			raise ValueError(f'update path to NeMo root directory')
 
 # STEP 2: create data directory and download an audio file
-
 if _CONFIG.get("pipeline").get("doDownloadData"):
      
-     WORK_DIR = 'WORK_DIR'
-     DATA_DIR = WORK_DIR + '/DATA'
      os.makedirs(DATA_DIR, exist_ok=True)
      audio_file = 'childrensshortworks019_06acarriersdog_am_128kb.mp3'
      if not os.path.exists(os.path.join(DATA_DIR, audio_file)):
@@ -89,3 +95,21 @@ if _CONFIG.get("pipeline").get("doDownloadData"):
 
      with open(os.path.join(DATA_DIR, audio_file.replace('mp3', 'txt')), 'w') as f:
           f.write(text)
+
+# STEP 3: preproces data
+if _CONFIG.get("pipeline").get("doPreprocessData"):
+
+	MODEL = _CONFIG.get("ASR_model")
+	OUTPUT_DIR = _CONFIG.get("organization").get("OUTPUT_DIR")
+
+	prep.do_prepare_data(
+		output_dir=OUTPUT_DIR+"/processed/",
+		audio_dir=DATA_DIR,
+		additional_split_symbols="",
+		use_nemo_normalization=False,
+		in_text=DATA_DIR,
+		model=MODEL,
+		cut_prefix=3
+	)
+
+

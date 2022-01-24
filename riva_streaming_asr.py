@@ -3,7 +3,7 @@ This is an example of streaming client for riva service
 Based on riva examples
 
 To run:
-$ python riva_streaming_asr.py --riva-uri 34.91.13.201:50051 --input-file wav/Clip0001.wav
+$ python riva_streaming_asr.py --riva-uri 34.90.177.137:50051 --input-file wav/Clip0001.wav
 """
 
 import wave
@@ -29,7 +29,7 @@ def get_args():
         "--simulate-realtime", default=False, action='store_true', help="Option to simulate realtime transcription"
     )
     parser.add_argument(
-        "--word-time-offsets", default=True, action='store_true', help="Option to output word timestamps"
+        "--word-time-offsets", default=False, action='store_true', help="Option to output word timestamps"
     )
     parser.add_argument(
         "--max-alternatives",
@@ -39,7 +39,7 @@ def get_args():
     )
     parser.add_argument(
         "--automatic-punctuation",
-        default=False,
+        default=True,
         action='store_true',
         help="Flag that controls if transcript should be automatically punctuated",
     )
@@ -186,7 +186,8 @@ def asr_client(
             print(e)
 
     responses = client.StreamingRecognize(generator(wf, streaming_config, num_iterations, output_file))
-    print_to_file_mitja(responses, output_file, max_alternatives, word_time_offsets)
+    #print_to_file_mitja(responses, output_file, max_alternatives, word_time_offsets)
+    print_to_file(responses, output_file, max_alternatives, word_time_offsets)
 
 
 from threading import Thread

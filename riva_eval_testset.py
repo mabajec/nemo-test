@@ -1,10 +1,10 @@
 """
 Use this script to automatically generate transcripts for TESTSET files
-To run:
-$ python riva_streaming_asr.py --riva-uri 34.91.13.201:50051 --input-file wav/Clip0001.wav
+
+To eval complete TESTSET, set the parser input and output folders and run:
+$ python riva_eval_testset.py
 
 TODO:
-[ ] parser arguments are currently ignored
 [ ] show progress bar
 [ ] add thread limitation
 [ ] ...
@@ -154,14 +154,17 @@ from threading import Thread
 #parser = get_args()
 
 parser_simulate_realtime = False
-parser_riva_uri = "34.91.13.201:50051"
+parser_riva_uri = "34.90.177.137:50051"
 parser_max_alternatives = 1
 parser_automatic_punctuation = False
 parser_word_time_offsets = False
 parser_no_verbatim_transcripts = False
 
 parser_input_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET"
-parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_retrained_model.15xc_LM"
+parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_QuartzNet_no_vad_20220102"
+#parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_retrained_model.15xc_LM"
+#parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/QuartzNet15x5_2021-10-21_LM_pocolm_6g_slo"
+#parser_output_folder = "outdata"
 
 
 print("Input folder:", parser_input_folder)
@@ -179,7 +182,8 @@ for file in os.listdir(parser_input_folder):
                 wavfile = os.path.join(parser_input_folder, file, ffile)
                 outfile = os.path.join(parser_output_folder, file, "".join(ffile.split(".")[:-1])+".txt")
                 print(wavfile)
-                print(outfile)
+                #print(outfile)
+                #print(file)
                 if not os.path.isdir(os.path.join(parser_output_folder, file)):
                     os.mkdir(os.path.join(parser_output_folder, file))
 
