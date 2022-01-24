@@ -116,7 +116,8 @@ def asr_client(
     config = rasr.RecognitionConfig(
         encoding=ra.AudioEncoding.LINEAR_PCM,
         sample_rate_hertz=wf.getframerate(),
-        language_code="en-US",
+        #language_code="en-US",
+        language_code="sl-SI",
         max_alternatives=max_alternatives,
         enable_automatic_punctuation=automatic_punctuation,
         enable_word_time_offsets=word_time_offsets,
@@ -154,14 +155,14 @@ from threading import Thread
 #parser = get_args()
 
 parser_simulate_realtime = False
-parser_riva_uri = "34.91.13.201:50051"
+parser_riva_uri = "34.90.177.137:50051"
 parser_max_alternatives = 1
 parser_automatic_punctuation = False
 parser_word_time_offsets = False
 parser_no_verbatim_transcripts = False
 
 parser_input_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET"
-parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_retrained_model.15xc_LM"
+parser_output_folder = "/Users/markob/Google Drive/FRI/LPT Projects/TESTSET/_results/json/NEMO_RIVA_Conformer-BPE-20211206-KENLM-noVAD"
 
 
 print("Input folder:", parser_input_folder)

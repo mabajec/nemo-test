@@ -2,7 +2,7 @@
 To run:
     - make sure riva server is running on the server machine
     - run: 
-    $ python riva_transcribe_mic.py  --server 34.91.13.201:50051
+    $ python riva_transcribe_mic.py  --server 34.90.177.137:50051
 """
 
 # Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
@@ -160,7 +160,8 @@ def main():
     config = rasr.RecognitionConfig(
         encoding=ra.AudioEncoding.LINEAR_PCM,
         sample_rate_hertz=RATE,
-        language_code="en-US",
+        #language_code="en-US",
+        language_code="sl-SI",
         max_alternatives=1,
         enable_automatic_punctuation=True,
     )
